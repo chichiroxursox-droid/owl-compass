@@ -1,0 +1,22 @@
+{
+  "edition": "Temple Undergraduate Bulletin 2026-2027",
+  "source": "https://bulletin.temple.edu/undergraduate/general-education/",
+  "areas": [
+    { "id": "gw", "codes": ["GW"], "name": "Analytical Reading & Writing", "short": "Writing", "slots": 1, "kind": "foundation" },
+    { "id": "gq", "codes": ["GQ"], "name": "Quantitative Literacy", "short": "Quantitative", "slots": 1, "kind": "foundation" },
+    { "id": "gy", "codes": ["GY"], "name": "Intellectual Heritage I", "short": "Intellectual Heritage I", "slots": 1, "kind": "foundation" },
+    { "id": "gz", "codes": ["GZ"], "name": "Intellectual Heritage II", "short": "Intellectual Heritage II", "slots": 1, "kind": "foundation" },
+    { "id": "ga", "codes": ["GA"], "name": "The Arts", "short": "Arts", "slots": 1, "kind": "breadth" },
+    { "id": "gb", "codes": ["GB"], "name": "Human Behavior", "short": "Human Behavior", "slots": 1, "kind": "breadth" },
+    { "id": "gd", "codes": ["GD"], "name": "Race & Diversity", "short": "Race & Diversity", "slots": 1, "kind": "breadth" },
+    { "id": "gg", "codes": ["GG"], "name": "Global / World Society", "short": "World Society", "slots": 1, "kind": "breadth" },
+    { "id": "gs", "codes": ["GS"], "name": "Science & Technology", "short": "Science & Tech", "slots": 2, "kind": "breadth" },
+    { "id": "gu", "codes": ["GU"], "name": "U.S. Society", "short": "U.S. Society", "slots": 1, "kind": "breadth" }
+  ],
+  "rules": [
+    { "id": "one-area", "quote": "A GenEd course counts in one GenEd area only." },
+    { "id": "dept-limit", "quote": "A student may use no more than two courses from a single department to satisfy GenEd requirements. (Foundation and transfer courses are excluded.)" },
+    { "id": "grade", "quote": "All GenEd courses must be completed with a grade of C- or higher to satisfy a GenEd requirement. ... Students may not take GenEd courses for credit/no credit." },
+    { "id": "employers", "quote": "GenEd goals prioritize and target the college outcomes most prized by employers." }
+  ]
+}

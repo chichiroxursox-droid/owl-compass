@@ -1,0 +1,109 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Owl Compass</title>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--ink:#111827;--mute:#6B7280;--line:#E5E7EB;--panel:#F3F4F6;--acc:#9D2235;--accs:#F9EEF0;--warn:#92400E;--warnbg:#FEF3C7}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1440px;height:900px;overflow:hidden;background:var(--bg);color:var(--ink);font:14px/1.45 "Public Sans",sans-serif}
+.mono{font-family:"JetBrains Mono",monospace;font-size:12px}
+header{height:64px;display:flex;align-items:center;gap:24px;padding:0 24px;border-bottom:1px solid var(--line)}
+.brand{font-weight:700;font-size:17px;display:flex;align-items:center;gap:8px;width:232px}
+.brand i{width:22px;height:22px;border-radius:6px;background:var(--acc);display:inline-block}
+.goal{flex:1;height:40px;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;padding:0 12px;gap:8px;background:var(--panel)}
+.goal span{color:var(--mute);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+select,.btn{height:40px;border:1px solid var(--line);border-radius:8px;padding:0 12px;font:inherit;background:#fff;color:var(--ink)}
+.btn.p{background:var(--acc);color:#fff;border-color:var(--acc);font-weight:600}
+nav{height:44px;display:flex;gap:28px;padding:0 24px 0 280px;border-bottom:1px solid var(--line);align-items:stretch}
+nav a{display:flex;align-items:center;color:var(--mute);text-decoration:none;font-weight:500;border-bottom:2px solid transparent}
+nav a.on{color:var(--ink);border-color:var(--acc)}
+main{display:grid;grid-template-columns:256px 1fr 336px;height:792px}
+aside.f{border-right:1px solid var(--line);padding:20px 24px;overflow:hidden}
+h4{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0 0 10px}
+.grp{margin-bottom:22px}
+label{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0}
+label em{margin-left:auto;font-style:normal;color:var(--mute);font-size:12px}
+input[type=checkbox],input[type=radio]{accent-color:var(--acc);width:15px;height:15px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:500;border:1px solid var(--line);margin:0 4px 6px 0}
+.chip.s{background:var(--accs);border-color:#E7C3CA;color:var(--acc)}
+.chip b{font-weight:600;font-size:11px;opacity:.8}
+section.r{padding:20px 28px;overflow:hidden}
+.rh{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.rh h1{font-size:20px;font-weight:700}.rh p{color:var(--mute);font-size:13px}
+.row{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:1fr 132px;gap:12px}
+.row.sel{border-color:var(--acc);box-shadow:inset 3px 0 0 var(--acc)}
+.t{display:flex;gap:10px;align-items:baseline}.t b{font-size:15px}
+.meta{display:flex;gap:6px;margin:6px 0 8px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;background:var(--panel)}
+.tag{font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid var(--line);color:#374151}
+.tag.m{border-color:#E7C3CA;color:var(--acc);background:var(--accs)}
+q{display:block;color:#4B5563;font-size:12.5px;border-left:2px solid var(--line);padding-left:10px;quotes:"\201C" "\201D"}
+.act{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between}
+.off{font-size:12px;font-weight:500;color:#166534}.off.no{color:var(--warn)}
+.act .btn{height:34px;font-size:13px}
+.act .btn:disabled{color:#9CA3AF;background:var(--panel)}
+aside.p{background:var(--panel);border-left:1px solid var(--line);padding:20px 24px;overflow:hidden}
+.prog{height:8px;border-radius:4px;background:#E5E7EB;margin:8px 0 4px;overflow:hidden}.prog i{display:block;height:100%;width:27.3%;background:var(--acc)}
+.slots{list-style:none;margin-top:14px}
+.slots li{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;font-size:13px;padding:7px 0;border-bottom:1px solid var(--line)}
+.slots li .mono{color:var(--mute)}.slots li.d b{font-weight:600}.slots li.e{color:var(--mute)}
+.ok{width:16px;height:16px;border-radius:50%;background:var(--acc);color:#fff;font-size:10px;display:grid;place-items:center}
+.note{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12.5px}
+.note a{color:var(--acc);font-weight:600}
+.foot{position:absolute;left:24px;bottom:12px;font-size:11px;color:var(--mute)}
+</style></head><body>
+<header><div class="brand"><i></i>Owl Compass</div>
+<div class="goal"><span>Goal</span>I want to get into UX design and get better at presenting.</div>
+<select><option>Management Information Systems (BBA)</option></select><button class="btn p">Update results</button></header>
+<nav><a class="on" href="#">Compass</a><a href="#">My plan</a><a href="#">Explore by skill</a><a href="#">How it works</a></nav>
+<main>
+<aside class="f">
+<div class="grp"><h4>Your skills</h4><span class="chip s">Visual design <b>strong</b></span><span class="chip s">Public speaking <b>strong</b></span><span class="chip">Persuasive writing <b>some</b></span><span class="chip" style="color:var(--mute)">+ Add skill</span></div>
+<div class="grp"><h4>GenEd area</h4>
+<label><input type="checkbox" checked>Arts (GA)<em>still needed</em></label>
+<label><input type="checkbox" checked>Human Behavior (GB)<em>still needed</em></label>
+<label><input type="checkbox" checked>Science &amp; Tech (GS)<em>0 of 2</em></label>
+<label><input type="checkbox">Race &amp; Diversity (GD)</label><label><input type="checkbox">World Society (GG)</label><label><input type="checkbox">U.S. Society (GU)</label><label><input type="checkbox">Quantitative Lit. (GQ)<em>planned</em></label></div>
+<div class="grp"><h4>Term</h4><label><input type="checkbox" checked>Offered Spring 2027</label></div>
+<div class="grp"><h4>Credits</h4><label><input type="radio" name="c" checked>Any</label><label><input type="radio" name="c">3 credits</label><label><input type="radio" name="c">4 credits</label></div>
+</aside>
+<section class="r">
+<div class="rh"><h1>14 courses match your goal</h1><p>Sorted by skill fit · Bulletin snapshot Oct 2026</p></div>
+<div class="row sel"><div><div class="t"><span class="mono">ARTS 0xxx</span><b>Design for Everyday Life (sample)</b></div>
+<div class="meta"><span class="badge">GenEd · Arts (GA)</span><span class="badge">3 cr</span><span class="tag m">Visual design</span><span class="tag m">Presenting</span><span class="tag">Critique</span></div>
+<q>Students develop and present visual solutions to design problems drawn from daily life. (sample)</q></div>
+<div class="act"><span class="off">Offered Spring 2027</span><button class="btn">✓ In plan</button></div></div>
+<div class="row"><div><div class="t"><span class="mono">COMM 0xxx</span><b>Speaking to Persuade (sample)</b></div>
+<div class="meta"><span class="badge">GenEd · Human Behavior (GB)</span><span class="badge">3 cr</span><span class="tag m">Public speaking</span><span class="tag m">Persuasive writing</span></div>
+<q>Examines how audiences are moved and gives students repeated practice delivering arguments. (sample)</q></div>
+<div class="act"><span class="off">Offered Spring 2027</span><button class="btn p">Add to plan</button></div></div>
+<div class="row"><div><div class="t"><span class="mono">PSY 0xxx</span><b>How People Perceive and Decide (sample)</b></div>
+<div class="meta"><span class="badge">GenEd · Human Behavior (GB)</span><span class="badge">3 cr</span><span class="tag m">User research</span><span class="tag">Data reading</span></div>
+<q>Introduces the psychology of attention, perception and choice through everyday examples. (sample)</q></div>
+<div class="act"><span class="off">Offered Spring 2027</span><button class="btn p">Add to plan</button></div></div>
+<div class="row"><div><div class="t"><span class="mono">CIS 0xxx</span><b>Interfaces, Media and Society (sample)</b></div>
+<div class="meta"><span class="badge">GenEd · Science &amp; Tech (GS)</span><span class="badge">3 cr</span><span class="tag m">Visual design</span><span class="tag">Prototyping</span></div>
+<q>Students build simple digital interfaces and test them with real users. (sample)</q></div>
+<div class="act"><span class="off no">Not offered Spring 2027</span><button class="btn" disabled>Next: Fall 2027</button></div></div>
+<div class="row"><div><div class="t"><span class="mono">THTR 0xxx</span><b>Performance and Presence (sample)</b></div>
+<div class="meta"><span class="badge">GenEd · Arts (GA)</span><span class="badge">3 cr</span><span class="tag m">Public speaking</span><span class="tag">Collaboration</span></div>
+<q>Builds voice, movement and confidence in front of an audience. (sample)</q></div>
+<div class="act"><span class="off">Offered Spring 2027</span><button class="btn p">Add to plan</button></div></div>
+</section>
+<aside class="p">
+<h4>My plan</h4><div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:22px">3 of 11 planned</b><span class="mono" style="color:var(--mute)">10 cr</span></div>
+<div class="prog"><i></i></div>
+<ul class="slots">
+<li class="d"><span class="mono">GW</span><b>Analytical Reading &amp; Writing</b><span class="ok">✓</span></li>
+<li class="d"><span class="mono">GQ</span><b>Quantitative Literacy</b><span class="ok">✓</span></li>
+<li class="d"><span class="mono">GA</span><b>Design for Everyday Life</b><span class="ok">✓</span></li>
+<li class="e"><span class="mono">GY</span>Intellectual Heritage I<span>—</span></li>
+<li class="e"><span class="mono">GZ</span>Intellectual Heritage II<span>—</span></li>
+<li class="e"><span class="mono">GB</span>Human Behavior<span>—</span></li>
+<li class="e"><span class="mono">GD</span>Race &amp; Diversity<span>—</span></li>
+<li class="e"><span class="mono">GG</span>World Society<span>—</span></li>
+<li class="e"><span class="mono">GS</span>Science &amp; Technology<span>—</span></li>
+<li class="e"><span class="mono">GS</span>Science &amp; Technology<span>—</span></li>
+<li class="e"><span class="mono">GU</span>U.S. Society<span>—</span></li></ul>
+<div class="note"><b>Plan check:</b> One area per course — this one counts toward Arts only. <a href="#">Bulletin ↗</a></div>
+</aside></main>
+<div class="foot">Student project · not an official Temple University tool</div>
+</body></html>

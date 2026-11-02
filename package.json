@@ -1,0 +1,25 @@
+{
+  "name": "owl-compass",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "node --test public/core/*.test.mjs",
+    "tag": "node tools/tag_skills.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.3.0",
+    "next": "15.5.28",
+    "react": "19.1.10",
+    "react-dom": "19.1.10",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "source": "Temple Undergraduate Bulletin 2026-2027 program pages",
+  "majors": [
+    { "id": "undeclared", "name": "Undeclared / exploring", "college": "", "waives": [], "waiverNote": "", "electiveSubjects": [], "electiveNote": "", "url": "https://bulletin.temple.edu/undergraduate/general-education/" },
+    { "id": "mis", "name": "Management Information Systems (BBA)", "college": "Fox School of Business", "waives": ["gq"],
+      "waiverNote": "STAT 2103 in the Fox core \"waives GenEd Quantitative Literacy requirement.\"",
+      "electiveSubjects": ["MIS"], "electiveNote": "Business electives: 2000–3999 courses from Fox prefixes. Shown here: MIS courses beyond the required core.",
+      "required": ["MIS 1001", "MIS 2001", "MIS 3001", "MIS 4001", "MIS 1101", "MIS 2402", "MIS 2502", "MIS 3406", "MIS 3506", "MIS 3502", "MIS 4596"],
+      "url": "https://bulletin.temple.edu/undergraduate/fox-business-management/management-information-systems-bba/" },
+    { "id": "mktg", "name": "Marketing (BBA)", "college": "Fox School of Business", "waives": ["gq"],
+      "waiverNote": "STAT 2103 in the Fox core \"waives GenEd Quantitative Literacy requirement.\"",
+      "electiveSubjects": ["MKTG"], "electiveNote": "\"Marketing Electives: Select two\" from MKTG 3501, 3504, 3506, 3508, 3513, 3514, 3580.",
+      "electiveList": ["MKTG 3501", "MKTG 3504", "MKTG 3506", "MKTG 3508", "MKTG 3513", "MKTG 3514", "MKTG 3580"],
+      "required": ["MKTG 2101", "MKTG 3509", "MKTG 3511", "MKTG 3596", "MKTG 4501"],
+      "url": "https://bulletin.temple.edu/undergraduate/fox-business-management/marketing-bba/" },
+    { "id": "ee", "name": "Electrical & Computer Engineering (BSECE, Electrical concentration)", "college": "College of Engineering", "waives": ["gq", "gs"],
+      "waiverNote": "The program lists no GQ or GS course; required MATH 1041/1042 and PHYS 1061/1062 are on the Bulletin's waiver lists. Confirm with an advisor.",
+      "electiveSubjects": ["ECE"], "electiveNote": "The Bulletin doesn't list which technical electives count; ECE 3000–4000 courses beyond the required core are shown as candidates, unverified.",
+      "required": ["ECE 1111", "ECE 2342", "ECE 2352", "ECE 2612", "ECE 2613", "ECE 3516", "ECE 3612", "ECE 3613", "ECE 3712", "ECE 3822", "ECE 4176", "ECE 3522"],
+      "url": "https://bulletin.temple.edu/undergraduate/engineering/electrical-computer-engineering-electrical-engineering-bsece/" },
+    { "id": "cs", "name": "Computer Science (BS)", "college": "College of Science and Technology", "waives": ["gq", "gs"],
+      "waiverNote": "The CS program waives GenEd Quantitative Literacy and both Science & Technology courses.",
+      "electiveSubjects": ["CIS"], "electiveNote": "\"Select 15-16 credits from the following CS elective courses\" (CIS 3000+ beyond the core).",
+      "required": ["CIS 1001", "CIS 1051", "CIS 1057", "CIS 1068", "CIS 1166", "CIS 2033", "CIS 2107", "CIS 2166", "CIS 2168", "CIS 3207", "CIS 3223", "CIS 3296", "CIS 4397", "CIS 4398"],
+      "url": "https://bulletin.temple.edu/undergraduate/science-technology/computer-science-bs/" }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "source": "Owl Compass skill list v1 (16 skills), grouped under the NACE Career Readiness Competencies (naceweb.org).",
+  "skills": [
+    { "id": "writing", "label": "Persuasive writing", "nace": "Communication", "hint": "Building a written argument, essays, reports" },
+    { "id": "speaking", "label": "Public speaking", "nace": "Communication", "hint": "Presenting, debating, leading a discussion" },
+    { "id": "visual", "label": "Visual & design thinking", "nace": "Communication", "hint": "Images, design, film, making ideas visible" },
+    { "id": "critical", "label": "Critical thinking", "nace": "Critical Thinking", "hint": "Weighing evidence, spotting weak arguments" },
+    { "id": "data", "label": "Data & statistics", "nace": "Critical Thinking", "hint": "Working with numbers, charts, statistics" },
+    { "id": "research", "label": "Research methods", "nace": "Critical Thinking", "hint": "Asking questions and testing them, lab or field" },
+    { "id": "science", "label": "Scientific reasoning", "nace": "Critical Thinking", "hint": "How the natural world works and how we know" },
+    { "id": "coding", "label": "Coding & computing", "nace": "Technology", "hint": "Programming, algorithms, digital tools" },
+    { "id": "tech-society", "label": "Tech & society", "nace": "Technology", "hint": "How technology changes people, work and power" },
+    { "id": "people", "label": "Understanding people", "nace": "Teamwork", "hint": "Psychology, behavior, why people do what they do" },
+    { "id": "teamwork", "label": "Collaboration", "nace": "Teamwork", "hint": "Group projects, working across differences" },
+    { "id": "leadership", "label": "Leadership & civic action", "nace": "Leadership", "hint": "Organizing people, policy, community change" },
+    { "id": "global", "label": "Global perspective", "nace": "Equity & Inclusion", "hint": "Other cultures, languages, world systems" },
+    { "id": "equity", "label": "Race, identity & equity", "nace": "Equity & Inclusion", "hint": "How race, class and identity shape lives" },
+    { "id": "ethics", "label": "Ethics & values", "nace": "Professionalism", "hint": "Right and wrong, big questions, philosophy" },
+    { "id": "creative", "label": "Creative practice", "nace": "Career & Self-Development", "hint": "Making art, music, performance, stories" }
+  ]
+}

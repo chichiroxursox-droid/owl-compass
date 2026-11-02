@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Owl Compass</title>
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@600;800&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1D2B4F;--or:#F37021;--bl:#0072CE;--gr:#009B3A;--pu:#7A3E9D;--ink:#1A1F2B;--mut:#5B6475;--line:#E3E6EC;--bg:#fff;--soft:#F5F6F8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1440px;height:900px;overflow:hidden;background:var(--bg);color:var(--ink);font:14px/1.45 'Public Sans',sans-serif}
+h1,h2,h3,.sign{font-family:'Overpass',sans-serif}
+header{height:112px;background:var(--navy);color:#fff;padding:0 32px;display:grid;grid-template-rows:56px 56px}
+.top{display:flex;align-items:center;gap:40px;border-bottom:1px solid rgba(255,255,255,.14)}
+.brand{font:800 22px 'Overpass';letter-spacing:.01em}
+nav{display:flex;gap:4px}nav a{color:#C9D1E3;text-decoration:none;font-weight:600;padding:8px 14px;border-radius:4px}
+nav a.on{color:#fff;background:rgba(255,255,255,.12)}
+.note{margin-left:auto;font-size:12px;color:#AEB8CE}
+.q{display:flex;align-items:center;gap:12px}
+.q label{font:600 11px 'Overpass';letter-spacing:.08em;text-transform:uppercase;color:#AEB8CE}
+.in{background:#fff;color:var(--ink);border-radius:4px;height:38px;display:flex;align-items:center;padding:0 12px}
+.goal{flex:1}.maj{width:330px;justify-content:space-between}
+.btn{height:38px;padding:0 18px;border-radius:4px;border:0;background:var(--or);color:#fff;font:700 14px 'Overpass'}
+main{display:grid;grid-template-columns:256px 1fr;height:600px}
+aside{border-right:1px solid var(--line);padding:20px 24px;overflow:hidden}
+aside h3{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin:18px 0 8px}aside h3:first-child{margin-top:0}
+.ck{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:13px}.ck i{width:15px;height:15px;border:1.5px solid #9AA3B5;border-radius:3px;display:inline-block}
+.ck.on i{background:var(--navy);border-color:var(--navy)}.ck small{margin-left:auto;color:var(--mut)}
+.sk{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;margin-bottom:6px;font-size:13px}
+.sk select{margin-left:auto;font:12px 'Public Sans';border:0;background:var(--soft);padding:2px 4px;border-radius:3px}
+.b{width:18px;height:18px;border-radius:50%;display:inline-grid;place-items:center;color:#fff;font:800 10px 'Overpass';flex:none}
+.o{background:var(--or)}.l{background:var(--bl)}.g{background:var(--gr)}.p{background:var(--pu)}
+.add{font-size:12px;color:var(--bl);font-weight:600}
+section{padding:20px 32px;overflow:hidden}
+.rh{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}.rh h2{font-size:20px}.rh span{color:var(--mut);font-size:13px}.rh .sort{margin-left:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font:600 11px 'Overpass';letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:8px 10px;border-bottom:2px solid var(--navy)}
+td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.code{font:800 13px 'Overpass';color:var(--navy)}.t{font-weight:600}.ev{font-size:12px;color:var(--mut);font-style:italic;margin-top:2px;max-width:470px}
+.area{font:700 12px 'Overpass';border:1.5px solid var(--navy);border-radius:3px;padding:1px 6px}
+.bs{display:flex;gap:4px}
+.off{font-size:12px;font-weight:600;color:var(--gr)}.no{color:#B42318}
+.ab{border:1.5px solid var(--navy);background:#fff;color:var(--navy);font:700 12px 'Overpass';padding:5px 10px;border-radius:4px}
+.ab.done{background:var(--navy);color:#fff}.ab.dis{border-color:#C5CAD3;color:#9AA3B5}
+.dim td{color:#8A92A3}
+.chk{font-size:12px;color:var(--mut);margin-top:4px}.chk a{color:var(--bl)}
+footer{position:absolute;left:0;bottom:0;width:1440px;height:188px;border-top:1px solid var(--line);background:var(--soft);padding:16px 32px}
+.fh{display:flex;align-items:baseline;gap:16px}.fh h2{font-size:16px}.fh .pr{font:800 14px 'Overpass';color:var(--navy)}.fh small{color:var(--mut);margin-left:auto}
+.map{position:relative;margin-top:26px;height:96px}
+.rail{position:absolute;left:12px;right:12px;top:22px;height:8px;background:var(--navy);border-radius:4px}
+.stops{position:relative;display:grid;grid-template-columns:repeat(11,1fr)}
+.st{text-align:center;font-size:11px}
+.dot{width:24px;height:24px;margin:11px auto 8px;border-radius:50%;background:#fff;border:5px solid var(--navy)}
+.st.e .dot{border:3px dashed #9AA3B5;background:var(--soft)}
+.st b{display:block;font:800 12px 'Overpass';color:var(--navy)}.st.e b{color:#8A92A3}.st span{color:var(--mut)}
+.st .bs{justify-content:center;margin-top:3px}.st .b{width:12px;height:12px}
+.legal{position:absolute;right:32px;bottom:10px;font-size:11px;color:var(--mut)}
+</style></head><body>
+<header>
+ <div class="top"><span class="brand">Owl Compass</span>
+  <nav><a class="on">Compass</a><a>My plan</a><a>Explore by skill</a><a>How it works</a></nav>
+  <span class="note">Bulletin snapshot 2026–27 · Class Schedule: Spring 2027</span></div>
+ <div class="q"><label>Goal</label><div class="in goal">I want to get into UX design and get better at presenting.</div>
+  <label>Major</label><div class="in maj">Management Information Systems (BBA) <span>▾</span></div><button class="btn">Find courses</button></div>
+</header>
+<main>
+<aside>
+ <h3>Your skills</h3>
+ <div class="sk"><span class="b o">V</span>Visual design<select><option>Strong</option></select></div>
+ <div class="sk"><span class="b l">S</span>Public speaking<select><option>Strong</option></select></div>
+ <div class="sk"><span class="b g">W</span>Persuasive writing<select><option>Some</option></select></div>
+ <span class="add">+ Add a skill</span>
+ <h3>GenEd area</h3>
+ <div class="ck on"><i></i>Arts (GA)<small>still needed</small></div>
+ <div class="ck on"><i></i>Human Behavior (GB)<small>still needed</small></div>
+ <div class="ck on"><i></i>U.S. Society (GU)<small>still needed</small></div>
+ <div class="ck"><i></i>World Society (GG)</div>
+ <div class="ck"><i></i>Race &amp; Diversity (GD)</div>
+ <h3>Schedule</h3>
+ <div class="ck on"><i></i>Offered Spring 2027</div>
+</aside>
+<section>
+ <div class="rh"><h2>Courses for your goal</h2><span>6 matches in Arts, Human Behavior, U.S. Society · course titles are (sample)</span><span class="sort">Sort: Best skill match ▾</span></div>
+ <table><thead><tr><th style="width:44%">Course</th><th>Area</th><th>Cr</th><th>Builds</th><th>Spring 2027</th><th></th></tr></thead><tbody>
+ <tr><td><span class="code">ART 08xx</span> <span class="t">Design for Everyday Life (sample)</span><div class="ev">“Students analyze how visual form shapes the way people use objects and interfaces.”</div>
+  <div class="chk">One area per course: this one counts toward Arts only · <a>Bulletin</a></div></td>
+  <td><span class="area">GA</span></td><td>3</td><td><div class="bs"><span class="b o">V</span><span class="b l">S</span></div></td><td class="off">Offered · 4 sections</td><td><button class="ab done">In plan ✓</button></td></tr>
+ <tr><td><span class="code">COMM 08xx</span> <span class="t">Speaking to Persuade (sample)</span><div class="ev">“Students prepare and deliver presentations and critique the rhetoric of others.”</div></td>
+  <td><span class="area">GU</span></td><td>3</td><td><div class="bs"><span class="b l">S</span><span class="b g">W</span></div></td><td class="off">Offered · 6 sections</td><td><button class="ab">Add to plan</button></td></tr>
+ <tr><td><span class="code">PSY 08xx</span> <span class="t">How People Perceive and Decide (sample)</span><div class="ev">“Examines attention, perception and judgment through everyday design examples.”</div></td>
+  <td><span class="area">GB</span></td><td>3</td><td><div class="bs"><span class="b o">V</span><span class="b g">W</span></div></td><td class="off">Offered · 3 sections</td><td><button class="ab">Add to plan</button></td></tr>
+ <tr><td><span class="code">THEATER 08xx</span> <span class="t">Performance and Presence (sample)</span><div class="ev">“Through voice and movement exercises, students build confidence before an audience.”</div></td>
+  <td><span class="area">GA</span></td><td>3</td><td><div class="bs"><span class="b l">S</span></div></td><td class="off">Offered · 2 sections</td><td><button class="ab">Add to plan</button></td></tr>
+ <tr class="dim"><td><span class="code">ARTH 08xx</span> <span class="t">Images That Sell (sample)</span><div class="ev">“Traces how advertising imagery argues, flatters and persuades.”</div></td>
+  <td><span class="area">GU</span></td><td>3</td><td><div class="bs"><span class="b o">V</span><span class="b g">W</span></div></td><td class="off no">Not offered Spring 2027</td><td><button class="ab dis">Save for Fall</button></td></tr>
+ </tbody></table>
+</section>
+</main>
+<footer>
+ <div class="fh"><h2>My plan</h2><span class="pr">3 of 11 planned</span><small>Line = your path through GenEd · dashed stops are still open</small></div>
+ <div class="map"><div class="rail"></div><div class="stops">
+  <div class="st"><div class="dot"></div><b>GW</b><span>ENG 08xx</span><div class="bs"><span class="b g"></span></div></div>
+  <div class="st"><div class="dot"></div><b>GQ</b><span>STAT 08xx</span></div>
+  <div class="st e"><div class="dot"></div><b>GY</b><span>Intel. Heritage I</span></div>
+  <div class="st e"><div class="dot"></div><b>GZ</b><span>Intel. Heritage II</span></div>
+  <div class="st"><div class="dot"></div><b>GA</b><span>ART 08xx</span><div class="bs"><span class="b o"></span><span class="b l"></span></div></div>
+  <div class="st e"><div class="dot"></div><b>GB</b><span>Human Behavior</span></div>
+  <div class="st e"><div class="dot"></div><b>GD</b><span>Race &amp; Diversity</span></div>
+  <div class="st e"><div class="dot"></div><b>GG</b><span>World Society</span></div>
+  <div class="st e"><div class="dot"></div><b>GS</b><span>Sci &amp; Tech 1</span></div>
+  <div class="st e"><div class="dot"></div><b>GS</b><span>Sci &amp; Tech 2</span></div>
+  <div class="st e"><div class="dot"></div><b>GU</b><span>U.S. Society</span></div>
+ </div></div>
+ <span class="legal">Student project · not an official Temple University tool</span>
+</footer>
+</body></html>
