@@ -1,0 +1,7 @@
+# The Vercel CLI doesn't read .gitignore: keep secrets and scratch files out of the upload.
+.env
+.env*.local
+.tmp
+.impeccable
+tasks
+tools

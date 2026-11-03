@@ -3,10 +3,11 @@
 Sources (robots-allowed, ~1 req/s):
   - Bulletin GenEd area pages: course lists per area
   - Bulletin /courses/<subj>/ pages: title, credits, description, attributes
-  - Banner 9 public class search: Spring 2027 sections per GenEd attribute
+  - Banner 9 public class search: Spring 2027 sections per GenEd attribute and per major subject
+Refresh only the schedule (no re-tagging needed): python3 tools/scrape.py --schedule
 Run: python3 tools/scrape.py   (about 3-5 minutes)
 """
-import html, json, re, time, uuid
+import html, json, re, sys, time, uuid
 from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
@@ -77,10 +78,11 @@ def subject_courses(subj):
     return out
 
 
-def schedule():
-    """{subject+number: {sections, open, online, instructors, times}} for Spring 2027 GenEd sections."""
-    out = {}
-    for attr in ATTRS:
+def schedule(queries=None):
+    """{subject+number: {sections, open, online, instructors, times}} for Spring 2027: every GenEd attribute and major subject."""
+    queries = queries or [{"txt_attribute": a} for a in ATTRS] + [{"txt_subject": s.upper()} for s in MAJOR_SUBJECTS]
+    out, seen = {}, set()  # a section can match two queries (CIS 0835 is GS and CIS); count it once
+    for q in queries:
         sess = requests.Session(); sess.headers.update(UA)  # fresh session per attribute (verified to work)
         sid = uuid.uuid4().hex[:12]
         sess.get(BANNER + "classSearch/getTerms?searchTerm=&offset=1&max=10", timeout=30)
@@ -90,12 +92,15 @@ def schedule():
         while offset < total:
             time.sleep(1)
             r = sess.get(BANNER + "searchResults/searchResults", params={
-                "txt_term": TERM, "txt_attribute": attr, "startDatepicker": "", "endDatepicker": "",
+                "txt_term": TERM, **q, "startDatepicker": "", "endDatepicker": "",
                 "uniqueSessionId": sid, "pageOffset": offset, "pageMaxSize": 100,
                 "sortColumn": "subjectDescription", "sortDirection": "asc"},
                 headers={"X-Requested-With": "XMLHttpRequest", "Accept": "application/json"}, timeout=60).json()
             total = r.get("totalCount") or 0
             for sec in r.get("data") or []:
+                if sec.get("courseReferenceNumber") in seen:
+                    continue
+                seen.add(sec.get("courseReferenceNumber"))
                 key = f"{sec['subject']} {sec['courseNumber']}"
                 c = out.setdefault(key, {"sections": 0, "open": 0, "online": 0, "instructors": [], "times": []})
                 c["sections"] += 1
@@ -115,11 +120,30 @@ def schedule():
                         if t not in c["times"] and len(c["times"]) < 6:
                             c["times"].append(t)
             offset += 100
-        print(f"schedule {attr}: {total} sections")
+        print(f"schedule {q}: {total} sections")
     return out
 
 
-if __name__ == "__main__":
+def refresh_major_schedule():
+    """Re-reads the major subjects' Spring 2027 sections into raw.json and patches the elective rows of courses.json."""
+    raw = json.loads(OUT.read_text())
+    raw.setdefault("schedule", {}).update(schedule([{"txt_subject": s.upper()} for s in MAJOR_SUBJECTS]))
+    OUT.write_text(json.dumps(raw))
+    data_file = ROOT / "public" / "data" / "courses.json"
+    data = json.loads(data_file.read_text())
+    n = 0
+    for c in data["courses"]:
+        if not c["area"]:  # GenEd rows already carry their schedule
+            sch = raw["schedule"].get(c["code"])
+            c["spring"] = {**sch, "instructors": sch["instructors"][:8]} if sch else None  # same shape as tag_skills.mjs
+            n += bool(sch)
+    data_file.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")))
+    print(f"{n} major courses are on the Spring 2027 schedule")
+
+
+if __name__ == "__main__" and "--schedule" in sys.argv:
+    refresh_major_schedule()
+elif __name__ == "__main__":
     lists = area_lists()
     print(f"{len(lists)} GenEd codes across areas")
     subjects = sorted({c.split()[0] for c in lists} | {s.upper() for s in MAJOR_SUBJECTS})

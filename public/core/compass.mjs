@@ -15,37 +15,76 @@ export function dots(course, weights) {
   return r === 0 ? 0 : r < 0.2 ? 1 : r < 0.4 ? 2 : 3;
 }
 
+// Copies of one course (cross-listings, Honors versions) share a "twin" id written by tools/twins.py.
+/** @param {any} c */
+const copyKey = (c) => c.twin || c.code;
+// A GenEd title several departments teach differently (World Society in Literature & Film) still shows once.
+/** @param {any} c */
+const titleKey = (c) => (c.area ? c.area + "|" + c.title.toLowerCase().replace(/&/g, "and").replace(/^honors:?\s*/, "").replace(/^the\s+/, "").replace(/[^a-z0-9]/g, "") : c.code);
+
+// fit: { code: 2-3 }, how squarely a course is about the student's goal (from /api/interpret).
+// The goal reader names one copy of a course; every copy gets the best fit any copy got.
+/** @param {any[]} courses @param {Record<string, number>} fit @returns {Record<string, number>} */
+export function spreadFit(courses, fit) {
+  /** @type {Record<string, number>} */
+  const best = {};
+  for (const c of courses) if (fit[c.code]) best[copyKey(c)] = Math.max(best[copyKey(c)] || 0, fit[c.code]);
+  return Object.fromEntries(courses.filter((c) => best[copyKey(c)]).map((c) => [c.code, best[copyKey(c)]]));
+}
+
+// Courses about the goal first, then by skill score: fit x 100 beats any skill score (max 4 tags x 3 x 3 = 36).
+// keepAll: show score-0 courses too.
+/** @param {any[]} list @param {Record<string, number>} weights @param {Record<string, number>} fit @param {number} per @param {boolean} [keepAll] */
+function top(list, weights, fit, per, keepAll = false) {
+  // The copy a student can most likely take: offered Spring 2027, then open to all (not Honors), then the twin id's copy.
+  const pref = (/** @type {any} */ c) => (c.spring ? 4 : 0) + (c.honors || /^honors/i.test(c.title) ? 0 : 2) + (c.code === c.twin ? 1 : 0);
+  // Copies are tagged separately, so a course scores as its best copy, shown as its most takeable copy.
+  /** @type {Map<string, {c: any, s: number}>} */
+  const copies = new Map();
+  for (const c of list) {
+    const s = (fit[c.code] || 0) * 100 + score(c, weights), g = copies.get(copyKey(c));
+    if (!g) copies.set(copyKey(c), { c, s });
+    else { g.s = Math.max(g.s, s); if (pref(c) > pref(g.c)) g.c = c; }
+  }
+  // Different courses sharing a title (World Society in Literature & Film) show once, as the one that matches best.
+  /** @type {Map<string, {c: any, s: number}>} */
+  const titles = new Map();
+  for (const x of copies.values()) {
+    const y = titles.get(titleKey(x.c));
+    if (!y || x.s > y.s || (x.s === y.s && pref(x.c) > pref(y.c))) titles.set(titleKey(x.c), x);
+  }
+  return [...titles.values()]
+    .filter((x) => keepAll || x.s > 0)
+    .sort((x, y) => y.s - x.s || pref(y.c) - pref(x.c))
+    .slice(0, per)
+    .map((x) => x.c);
+}
+
 // Top courses per GenEd area, honoring "Offered Spring 2027" and the major's waivers.
-/** @param {any[]} courses @param {any[]} areas @param {Record<string, number>} weights @param {{springOnly?: boolean, waives?: string[], per?: number}} [opts] @returns {Record<string, any>} */
-export function rankByArea(courses, areas, weights, { springOnly = false, waives = [], per = 4 } = {}) {
+// A fixed area (Writing, IH I, IH II) names the one course everyone takes; it shows whatever the goal or skills.
+/** @param {any[]} courses @param {any[]} areas @param {Record<string, number>} weights @param {{springOnly?: boolean, waives?: string[], per?: number, fit?: Record<string, number>}} [opts] @returns {Record<string, any>} */
+export function rankByArea(courses, areas, weights, { springOnly = false, waives = [], per = 4, fit = {} } = {}) {
   const out = {};
   for (const a of areas) {
-    if (waives.includes(a.id)) { out[a.id] = { waived: true, courses: [] }; continue; }
-    out[a.id] = {
-      waived: false,
-      courses: courses
-        .filter((c) => c.area === a.id && (!springOnly || c.spring))
-        .map((c) => ({ c, s: score(c, weights) }))
-        .filter((x) => x.s > 0)
-        .sort((x, y) => y.s - x.s || (y.c.spring ? 1 : 0) - (x.c.spring ? 1 : 0))
-        .slice(0, per)
-        .map((x) => x.c),
-    };
+    const list = courses.filter((c) => c.area === a.id && (!springOnly || c.spring));
+    out[a.id] = waives.includes(a.id)
+      ? { waived: true, courses: [] }
+      : { waived: false, courses: a.fixed ? top(list.filter((c) => copyKey(c) === a.fixed || c.code === a.fixed), {}, {}, 1, true) : top(list, weights, fit, per) };
   }
   return out;
 }
 
-/** @param {any[]} courses @param {any} major @param {Record<string, number>} weights @param {number} [per] @returns {any[]} */
-export function rankElectives(courses, major, weights, per = 6) {
+// The courses a major's elective list draws from (also what /api/interpret shows Claude for that major).
+/** @param {any[]} courses @param {any} major @returns {any[]} */
+export function majorPool(courses, major) {
   if (!major?.electiveSubjects?.length) return [];
   const list = major.electiveList ? new Set(major.electiveList) : null;
-  return courses
-    .filter((c) => !c.area && major.electiveSubjects.includes(c.subject) && (!list || list.has(c.code)))
-    .map((c) => ({ c, s: score(c, weights) }))
-    .filter((x) => x.s > 0)
-    .sort((x, y) => y.s - x.s)
-    .slice(0, per)
-    .map((x) => x.c);
+  return courses.filter((c) => !c.area && major.electiveSubjects.includes(c.subject) && (!list || list.has(c.code)));
+}
+
+/** @param {any[]} courses @param {any} major @param {Record<string, number>} weights @param {{per?: number, fit?: Record<string, number>, springOnly?: boolean}} [opts] @returns {any[]} */
+export function rankElectives(courses, major, weights, { per = 6, fit = {}, springOnly = false } = {}) {
+  return top(majorPool(courses, major).filter((c) => !springOnly || c.spring), weights, fit, per);
 }
 
 // Check a plan against the Bulletin's GenEd rules. plan: [{ code, area, subject }]

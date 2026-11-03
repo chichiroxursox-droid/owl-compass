@@ -2,10 +2,10 @@
   "edition": "Temple Undergraduate Bulletin 2026-2027",
   "source": "https://bulletin.temple.edu/undergraduate/general-education/",
   "areas": [
-    { "id": "gw", "codes": ["GW"], "name": "Analytical Reading & Writing", "short": "Writing", "slots": 1, "kind": "foundation" },
+    { "id": "gw", "codes": ["GW"], "name": "Analytical Reading & Writing", "short": "Writing", "slots": 1, "kind": "foundation", "fixed": "ENG 0802" },
     { "id": "gq", "codes": ["GQ"], "name": "Quantitative Literacy", "short": "Quantitative", "slots": 1, "kind": "foundation" },
-    { "id": "gy", "codes": ["GY"], "name": "Intellectual Heritage I", "short": "Intellectual Heritage I", "slots": 1, "kind": "foundation" },
-    { "id": "gz", "codes": ["GZ"], "name": "Intellectual Heritage II", "short": "Intellectual Heritage II", "slots": 1, "kind": "foundation" },
+    { "id": "gy", "codes": ["GY"], "name": "Intellectual Heritage I", "short": "Intellectual Heritage I", "slots": 1, "kind": "foundation", "fixed": "IH 0851" },
+    { "id": "gz", "codes": ["GZ"], "name": "Intellectual Heritage II", "short": "Intellectual Heritage II", "slots": 1, "kind": "foundation", "fixed": "IH 0852" },
     { "id": "ga", "codes": ["GA"], "name": "The Arts", "short": "Arts", "slots": 1, "kind": "breadth" },
     { "id": "gb", "codes": ["GB"], "name": "Human Behavior", "short": "Human Behavior", "slots": 1, "kind": "breadth" },
     { "id": "gd", "codes": ["GD"], "name": "Race & Diversity", "short": "Race & Diversity", "slots": 1, "kind": "breadth" },

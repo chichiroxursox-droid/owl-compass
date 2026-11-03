@@ -1,6 +1,6 @@
 # Owl Compass
 
-**Pick GenEds on purpose.** A Temple student types what they want to get better at ("UX design and presenting"), picks a major, and sees real GenEd courses and major electives ranked by the skills they build. Every skill tag quotes the official catalog, Spring 2027 sections are shown, and a plan tray checks the Bulletin's GenEd rules as you add courses.
+**Pick GenEds on purpose.** A Temple student types what they want to get better at ("UX design and presenting"), picks a major, and sees real GenEd courses and major electives: the ones about that goal first, the rest ranked by the skills they build. Every skill tag quotes the official catalog, Spring 2027 sections are shown, and a plan tray checks the Bulletin's GenEd rules as you add courses.
 
 Team 22 · Temple AI Build Challenge (Student Success and Wellbeing track). A student project, not an official Temple tool.
 
@@ -14,15 +14,15 @@ Both share the course data (`public/data/`), the ranking and rule logic (`public
 | Step | Who does it |
 |---|---|
 | Tag each course with skills, quoting its description (once, offline) | Claude Opus 5.5, `tools/tag_skills.mjs`. A tag whose quote isn't found word for word in the description is thrown out. |
-| Turn a student's goal into weighted skills (live) | Claude Haiku 5.5, `app/api/interpret` |
-| Explain "why this fits you" for the top picks (live) | Claude Haiku 5.5, `app/api/explain`. Only course codes we sent it can come back. |
-| Rank courses and check GenEd rules | Plain code, not AI (`public/core/compass.mjs`, `npm test`) |
+| Read a student's goal against the catalog: which skills would help, and which courses are about the goal (live) | Claude Sonnet 5.5, `app/api/interpret`. It reads each GenEd course's official description (and the student's own major courses) and names only courses whose subject is the goal; any code it invents is dropped. |
+| Explain "why this fits you" for the top picks (live) | Claude Sonnet 5.5, `app/api/explain`, from each course's own description. Only course codes we sent it can come back. |
+| Rank courses and check GenEd rules | Plain code, not AI (`public/core/compass.mjs`, `npm test`): courses about the goal first, then by skill match; cross-listed and Honors copies of a course shown once. |
 
 ## Data (public sources only)
 - The Temple Undergraduate Bulletin 2026–27: GenEd area lists, course descriptions and major requirements.
 - Temple's public Spring 2027 class schedule.
 
-`python3 tools/scrape.py` refreshes the data, and then `node --env-file=.env tools/tag_skills.mjs` re-tags it (about $5). Rate My Professors is only linked, never copied. No student data is stored; a plan stays in your own browser.
+`python3 tools/scrape.py` refreshes the data, `node --env-file=.env tools/tag_skills.mjs` re-tags it (about $5), and `python3 tools/twins.py` marks cross-listed and Honors copies of the same course. Rate My Professors is only linked, never copied. No student data is stored; a plan stays in your own browser.
 
 ## Run it
 `npm install`, put `ANTHROPIC_API_KEY=...` in `.env`, then `npm run dev`.

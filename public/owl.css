@@ -34,7 +34,7 @@ button, input, select { font: inherit; color: inherit; }
 .goal input::placeholder { color: #6b6b6b; }
 .btn { height: 44px; padding: 0 18px; border-radius: var(--r); border: 2px solid var(--ink); background: var(--ink); color: #fff; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .btn:hover { background: #333; }
-.btn:disabled { opacity: .55; cursor: progress; }
+.btn:disabled, .btn.busy { opacity: .55; cursor: progress; }
 .btn.ghost { background: #fff; color: var(--ink); }
 .btn.ghost:hover { background: var(--panel); }
 .major { height: 44px; padding: 0 10px; border: 2px solid var(--ink); border-radius: var(--r); background: #fff; max-width: 280px; }
@@ -70,7 +70,7 @@ h3.h { font: 600 15px/1.2 var(--ui); margin: 18px 0 8px; color: var(--ink-2); }
 .area-head { display: flex; align-items: baseline; gap: 10px; border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 4px; }
 .chip { display: inline-block; font: 700 12px/1 var(--ui); padding: 5px 7px; border-radius: 4px; color: var(--ink); letter-spacing: .02em; }
 .area-head h2 { font: 700 24px/1 var(--display); text-transform: uppercase; margin: 0; }
-.area-head .meta { margin-left: auto; font-size: 13px; color: var(--ink-2); }
+.area-head .meta { margin-left: auto; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
 .row { display: grid; grid-template-columns: minmax(0, 1fr) 92px; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .row-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
 .code { font: 700 13px/1 var(--ui); white-space: nowrap; }
@@ -126,6 +126,8 @@ h3.h { font: 600 15px/1.2 var(--ui); margin: 18px 0 8px; color: var(--ink-2); }
 
 /* Responsive */
 @media (max-width: 1100px) {
+  .band-in { grid-template-columns: auto minmax(0, 1fr) minmax(0, 220px); }
+  .major { width: 100%; }
   .shell { grid-template-columns: 230px minmax(0,1fr); }
   .tray { grid-column: 1 / -1; position: static; max-height: none; border-left: 0; border-top: 1px solid var(--line); }
 }
@@ -139,3 +141,7 @@ h3.h { font: 600 15px/1.2 var(--ui); margin: 18px 0 8px; color: var(--ink-2); }
   .tab { width: 76px; }
   .goal .btn { padding: 0 12px; }
 }
+
+/* The goal is yellow: the band holds it, "We heard" restates it, and this marks courses about it */
+.fit { font: 700 12px/1 var(--ui); padding: 4px 7px; border-radius: 4px; background: #fffbd1; border: 1px solid #e8d900; white-space: nowrap; }
+.readback .link { margin-left: auto; border: 0; background: none; padding: 0; font-size: 13px; color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; white-space: nowrap; }
