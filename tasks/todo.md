@@ -15,6 +15,14 @@
 - **P3** — Some GenEds exclude certain majors ("Field of Study Restrictions" in the description, e.g. ECE 0832 for CS and EE). The ranking ignores this; it's mostly hidden today by the CS and EE waivers.
 
 ## Resolved
+- 2026-11-03 — Final code check: 9 of 10 findings fixed, checked locally and live, and pushed.
+  - A second Enter while a goal is being read no longer starts another paid AI call.
+  - A major change keeps the GenEd picks on screen and re-ranks only the electives.
+  - AI calls share a 25 s deadline, so a stuck call ends in "AI is busy" before Vercel's 30 s cutoff.
+  - Claude sees only GenEds that can show; ENG 0812 (ESL) never could.
+  - A code Claude lists twice keeps its best fit, and the React page reads the current skills and Spring filter when a reply lands.
+  - `scrape.py --schedule` replaces the major subjects' sections instead of merging them.
+  - Skipped: logic shared by `/` and `/classic` stays duplicated until the team picks one.
 - 2026-11-03 — The goal now ranks courses itself, so skills are optional. Ethan reported that "I want to do AI" showed nothing once skills were empty, and that clicking skills overrode the goal.
   - `/api/interpret` returns which courses are about the goal (fit), ranked above skill matches.
   - Switched Haiku 5.5 to Sonnet 5.5 after a side-by-side test. Judged precision on 12 goals went from 41% to 66% relevant, and from 25% to 4% irrelevant.

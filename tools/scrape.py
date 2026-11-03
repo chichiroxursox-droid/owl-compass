@@ -4,7 +4,7 @@ Sources (robots-allowed, ~1 req/s):
   - Bulletin GenEd area pages: course lists per area
   - Bulletin /courses/<subj>/ pages: title, credits, description, attributes
   - Banner 9 public class search: Spring 2027 sections per GenEd attribute and per major subject
-Refresh only the schedule (no re-tagging needed): python3 tools/scrape.py --schedule
+Refresh the major electives' Spring 2027 sections (GenEd rows keep theirs; no re-tagging): python3 tools/scrape.py --schedule
 Run: python3 tools/scrape.py   (about 3-5 minutes)
 """
 import html, json, re, sys, time, uuid
@@ -127,7 +127,9 @@ def schedule(queries=None):
 def refresh_major_schedule():
     """Re-reads the major subjects' Spring 2027 sections into raw.json and patches the elective rows of courses.json."""
     raw = json.loads(OUT.read_text())
-    raw.setdefault("schedule", {}).update(schedule([{"txt_subject": s.upper()} for s in MAJOR_SUBJECTS]))
+    # Those subjects' entries are replaced, not merged, so a course dropped from the schedule loses its old one.
+    kept = {k: v for k, v in raw.get("schedule", {}).items() if k.split()[0].lower() not in MAJOR_SUBJECTS}
+    raw["schedule"] = kept | schedule([{"txt_subject": s.upper()} for s in MAJOR_SUBJECTS])
     OUT.write_text(json.dumps(raw))
     data_file = ROOT / "public" / "data" / "courses.json"
     data = json.loads(data_file.read_text())

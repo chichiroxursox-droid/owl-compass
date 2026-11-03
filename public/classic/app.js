@@ -1,4 +1,4 @@
-import { rankByArea, rankElectives, checkPlan, dots } from "/core/compass.mjs";
+import { rankByArea, rankElectives, rereadFit, checkPlan, dots } from "/core/compass.mjs";
 
 const RMP = (name) => `https://www.ratemyprofessors.com/search/professors?q=${encodeURIComponent(name + " Temple University")}`;
 const RULE_URL = "https://bulletin.temple.edu/undergraduate/general-education/";
@@ -88,10 +88,11 @@ function onMainClick(e) {
   if (t) take(S.data.courses.find((c) => c.code === t.dataset.take));
 }
 
-// reread: the same goal for a newly chosen major. It keeps the box as typed, and keeps the skills when the shown
-// reading is of this goal (the student may have changed them); a newer goal that hasn't landed gets its own.
+// reread: the same goal for a newly chosen major. It keeps the box as typed, and when the shown reading is of this
+// goal it keeps the skills (the student may have changed them) and the GenEd picks; a newer goal gets its own.
 async function find(text = S.goal, mid = S.majorId, reread = false) {
-  if (!text.trim()) return;
+  // A second press while the same goal is being read does nothing; each read is a paid AI call.
+  if (!text.trim() || (S.busy && !reread && text === S.asked)) return;
   const keep = reread && S.readFor === text;
   const n = ++seq;
   if (!reread) { S.goal = text; $goal.value = text; }
@@ -101,7 +102,7 @@ async function find(text = S.goal, mid = S.majorId, reread = false) {
     const j = await r?.json().catch(() => null);
     if (n !== seq) return;
     if (!r?.ok || !j?.weights) throw new Error(j?.error || "Couldn't reach the AI. Check your connection, or pick skills by hand.");
-    const f = j.fit || {}, w = keep ? S.weights : j.weights;
+    const f = keep ? rereadFit(S.data.courses, S.fit, j.fit || {}) : j.fit || {}, w = keep ? S.weights : j.weights;
     if (!keep) { S.weights = w; S.skillsFrom = "goal"; }
     S.fit = f; S.readBack = j.readBack; S.readFor = text;
     // Explain only courses about the goal: the top one per area (not the required ones) and the top major electives.

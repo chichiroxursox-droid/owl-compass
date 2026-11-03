@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 // Shared plain-JS core (also used by /classic)
-import { rankByArea, rankElectives, checkPlan, dots } from "../public/core/compass.mjs";
+import { rankByArea, rankElectives, rereadFit, checkPlan, dots } from "../public/core/compass.mjs";
 
 type Skill = { id: string; label: string; hint: string };
 type Course = {
@@ -35,6 +35,9 @@ export default function Page() {
   const [error, setError] = useState("");
   const [tearing, setTearing] = useState("");
   const seq = useRef(0); // only the latest search may update the page
+  // What find() reads once its reply lands: the state as it is then, not as it was when the search began.
+  const live = useRef({ weights, springOnly, fit });
+  useEffect(() => { live.current = { weights, springOnly, fit }; });
 
   useEffect(() => {
     Promise.all(["courses", "skills", "rules", "majors"].map((f) => fetch(`/data/${f}.json`).then((r) => r.json()))).then(([c, s, r, m]) => {
@@ -59,10 +62,11 @@ export default function Page() {
   const electives: Course[] = useMemo(() => (data && active ? rankElectives(data.courses, major, weights, { fit, springOnly }) : []), [data, major, weights, active, fit, springOnly]);
   const check = useMemo(() => (data ? checkPlan(plan.filter((p) => p.area), data.areas, waives) : null), [data, plan, waives]);
 
-  // reread: the same goal for a newly chosen major. It keeps the box as typed, and keeps the skills when the shown
-  // reading is of this goal (the student may have changed them); a newer goal that hasn't landed gets its own.
+  // reread: the same goal for a newly chosen major. It keeps the box as typed, and when the shown reading is of this
+  // goal it keeps the skills (the student may have changed them) and the GenEd picks; a newer goal gets its own.
   async function find(text = goal, mid = majorId, reread = false) {
-    if (!text.trim()) return;
+    // A second press while the same goal is being read does nothing; each read is a paid AI call.
+    if (!text.trim() || (busy && !reread && text === asked)) return;
     const keep = reread && readFor === text;
     const n = ++seq.current;
     if (!reread) setGoal(text);
@@ -72,12 +76,13 @@ export default function Page() {
       const j = await r?.json().catch(() => null);
       if (n !== seq.current) return;
       if (!r?.ok || !j?.weights) throw new Error(j?.error || "Couldn't reach the AI. Check your connection, or pick skills by hand.");
-      const f: Record<string, number> = j.fit || {}, w = keep ? weights : j.weights;
+      const now = live.current;
+      const f: Record<string, number> = keep ? rereadFit(data!.courses, now.fit, j.fit || {}) : j.fit || {}, w = keep ? now.weights : j.weights;
       if (!keep) { setWeights(w); setSkillsFrom("goal"); }
       setFit(f); setReadBack(j.readBack); setReadFor(text);
       // Explain only courses about the goal: the top one per area (not the required ones) and the top major electives.
       const m = data!.majors.find((x) => x.id === mid);
-      const tops = [...Object.values(rankByArea(data!.courses, data!.areas.filter((a) => !a.fixed), w, { springOnly, waives: m?.waives || [], per: 1, fit: f })).flatMap((a: any) => a.courses as Course[]), ...rankElectives(data!.courses, m, w, { per: 2, fit: f, springOnly })];
+      const tops = [...Object.values(rankByArea(data!.courses, data!.areas.filter((a) => !a.fixed), w, { springOnly: now.springOnly, waives: m?.waives || [], per: 1, fit: f })).flatMap((a: any) => a.courses as Course[]), ...rankElectives(data!.courses, m, w, { per: 2, fit: f, springOnly: now.springOnly })];
       const codes = tops.filter((c) => f[c.code]).sort((a, b) => f[b.code] - f[a.code]).map((c) => c.code).slice(0, 10);
       if (codes.length) fetch("/api/explain", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ goal: text, codes }) })
         .then((x) => x.json()).then((x) => n === seq.current && setReasons(x.reasons || {})).catch(() => {});

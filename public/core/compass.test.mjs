@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { score, dots, rankByArea, rankElectives, spreadFit, checkPlan } from "./compass.mjs";
+import { score, dots, rankByArea, rankElectives, spreadFit, rereadFit, genEdPool, checkPlan } from "./compass.mjs";
 
 const areas = [
   { id: "gw", short: "Writing", slots: 1, kind: "foundation" },
@@ -21,11 +21,18 @@ test("courses about the goal come first, and show even with no skills set", () =
   assert.deepEqual(rankByArea(list, areas, {}, { fit }).gs.courses.map((x) => x.code), ["CIS 0835"]);
 });
 
-test("a required area shows its one course, whatever the skills or goal", () => {
-  const list = [c("ENG 0802", "gw", [{ id: "writing", strength: 3 }], { sections: 9 }), c("ENG 0812", "gw", [{ id: "global", strength: 3 }], { sections: 2 }), c("ART 0801", "ga", [{ id: "ethics", strength: 2 }])];
-  const r = rankByArea(list, [{ ...areas[0], fixed: "ENG 0802" }, areas[1]], { global: 3 }, { fit: { "ENG 0812": 3 } });
+test("a required area shows its one course, whatever the skills or goal, and Claude is shown only that one", () => {
+  const list = [c("ENG 0802", "gw", [{ id: "writing", strength: 3 }], { sections: 9 }), c("ENG 0812", "gw", [{ id: "global", strength: 3 }], { sections: 2 }), c("ART 0801", "ga", [{ id: "ethics", strength: 2 }]), c("CIS 1001", null, [])];
+  const fixed = [{ ...areas[0], fixed: "ENG 0802" }, areas[1]];
+  const r = rankByArea(list, fixed, { global: 3 }, { fit: { "ENG 0812": 3 } });
   assert.deepEqual(r.gw.courses.map((x) => x.code), ["ENG 0802"]);
   assert.deepEqual(r.ga.courses, []);
+  assert.deepEqual(genEdPool(list, fixed).map((x) => x.code), ["ENG 0802", "ART 0801"]);
+});
+
+test("re-reading for a new major keeps the GenEd picks on screen and takes the new elective picks", () => {
+  const list = [c("CIS 0835", "gs", []), c("ART 0801", "ga", []), c("CIS 3715", null, []), c("MKTG 3511", null, [])];
+  assert.deepEqual(rereadFit(list, { "CIS 0835": 3, "CIS 3715": 2 }, { "ART 0801": 3, "MKTG 3511": 3 }), { "CIS 0835": 3, "MKTG 3511": 3 });
 });
 
 test("copies of a course show once, scored as the best copy and shown as the most takeable one", () => {

@@ -24,8 +24,10 @@ type Params = Omit<MessageCreateParamsNonStreaming, "model" | "output_config">;
 // an unreadable reply; the log gets the reply's shape, never its text. Null if both tries fail.
 export async function askJson<T>(label: string, schema: z.ZodType<T>, params: Params): Promise<T | null> {
   const format = { type: "json_schema" as const, schema: zodOutputFormat(schema).schema };
+  // One deadline for both tries and the SDK's own retries, so the route can answer before its 30 s limit cuts it off.
+  const signal = AbortSignal.timeout(25_000);
   for (let attempt = 1; attempt <= 2; attempt++) {
-    const res = await client.beta.messages.create({ ...MODEL, ...params, output_config: { ...MODEL.output_config, format } });
+    const res = await client.beta.messages.create({ ...MODEL, ...params, output_config: { ...MODEL.output_config, format } }, { signal });
     let json: unknown;
     try { json = JSON.parse(res.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).at(-1) ?? ""); } catch {}
     const out = schema.safeParse(json);

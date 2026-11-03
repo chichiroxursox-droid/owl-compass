@@ -17,7 +17,7 @@ export function dots(course, weights) {
 
 // Copies of one course (cross-listings, Honors versions) share a "twin" id written by tools/twins.py.
 /** @param {any} c */
-const copyKey = (c) => c.twin || c.code;
+export const copyKey = (c) => c.twin || c.code;
 // A GenEd title several departments teach differently (World Society in Literature & Film) still shows once.
 /** @param {any} c */
 const titleKey = (c) => (c.area ? c.area + "|" + c.title.toLowerCase().replace(/&/g, "and").replace(/^honors:?\s*/, "").replace(/^the\s+/, "").replace(/[^a-z0-9]/g, "") : c.code);
@@ -30,6 +30,14 @@ export function spreadFit(courses, fit) {
   const best = {};
   for (const c of courses) if (fit[c.code]) best[copyKey(c)] = Math.max(best[copyKey(c)] || 0, fit[c.code]);
   return Object.fromEntries(courses.filter((c) => best[copyKey(c)]).map((c) => [c.code, best[copyKey(c)]]));
+}
+
+// Re-reading the same goal for a new major changes only the elective picks. The GenEd picks on screen stay rather
+// than reshuffle with the model's run-to-run variation.
+/** @param {any[]} courses @param {Record<string, number>} shown @param {Record<string, number>} fresh @returns {Record<string, number>} */
+export function rereadFit(courses, shown, fresh) {
+  const gen = new Set(courses.filter((c) => c.area).map((c) => c.code));
+  return Object.fromEntries([...Object.entries(shown).filter(([k]) => gen.has(k)), ...Object.entries(fresh).filter(([k]) => !gen.has(k))]);
 }
 
 // Courses about the goal first, then by skill score: fit x 100 beats any skill score (max 4 tags x 3 x 3 = 36).
@@ -60,16 +68,25 @@ function top(list, weights, fit, per, keepAll = false) {
     .map((x) => x.c);
 }
 
-// Top courses per GenEd area, honoring "Offered Spring 2027" and the major's waivers.
-// A fixed area (Writing, IH I, IH II) names the one course everyone takes; it shows whatever the goal or skills.
+// The GenEd courses that can show (also what /api/interpret shows Claude). A fixed area (Writing, IH I, IH II) names
+// the one course everyone takes, so its other courses (ENG 0812, the ESL version) never show.
+/** @param {any[]} courses @param {any[]} areas @returns {any[]} */
+export function genEdPool(courses, areas) {
+  const fixed = Object.fromEntries(areas.filter((a) => a.fixed).map((a) => [a.id, a.fixed]));
+  return courses.filter((c) => c.area && (!fixed[c.area] || copyKey(c) === fixed[c.area] || c.code === fixed[c.area]));
+}
+
+// Top courses per GenEd area, honoring "Offered Spring 2027" and the major's waivers. A fixed area's course shows
+// whatever the goal or skills.
 /** @param {any[]} courses @param {any[]} areas @param {Record<string, number>} weights @param {{springOnly?: boolean, waives?: string[], per?: number, fit?: Record<string, number>}} [opts] @returns {Record<string, any>} */
 export function rankByArea(courses, areas, weights, { springOnly = false, waives = [], per = 4, fit = {} } = {}) {
+  const pool = genEdPool(courses, areas);
   const out = {};
   for (const a of areas) {
-    const list = courses.filter((c) => c.area === a.id && (!springOnly || c.spring));
+    const list = pool.filter((c) => c.area === a.id && (!springOnly || c.spring));
     out[a.id] = waives.includes(a.id)
       ? { waived: true, courses: [] }
-      : { waived: false, courses: a.fixed ? top(list.filter((c) => copyKey(c) === a.fixed || c.code === a.fixed), {}, {}, 1, true) : top(list, weights, fit, per) };
+      : { waived: false, courses: a.fixed ? top(list, {}, {}, 1, true) : top(list, weights, fit, per) };
   }
   return out;
 }
