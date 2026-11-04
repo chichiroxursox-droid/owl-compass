@@ -5,6 +5,7 @@ Sources (robots-allowed, ~1 req/s):
   - Bulletin /courses/<subj>/ pages: title, credits, description, attributes
   - Banner 9 public class search: Spring 2027 sections per GenEd attribute and per major subject
 Refresh the major electives' Spring 2027 sections (GenEd rows keep theirs; no re-tagging): python3 tools/scrape.py --schedule
+Add how full each course ended Spring 2026 (no re-tagging): python3 tools/scrape.py --last-spring
 Run: python3 tools/scrape.py   (about 3-5 minutes)
 """
 import html, json, re, sys, time, uuid
@@ -20,6 +21,7 @@ AREAS = ["gw", "gq", "gy-gz", "ga", "gb", "gd", "gg", "gs", "gu"]
 MAJOR_SUBJECTS = ["mis", "mktg", "cis", "ece"]  # elective pools for the 4 majors
 BANNER = "https://prd-xereg.temple.edu/StudentRegistrationSsb/ssb/"
 TERM = "202703"  # Spring 2027
+LAST_SPRING = "202603"  # Spring 2026, for "full last spring"
 ATTRS = ["GW", "GQ", "GY", "GZ", "GA", "GB", "GD", "GG", "GS", "GU"]
 
 s = requests.Session()
@@ -78,21 +80,21 @@ def subject_courses(subj):
     return out
 
 
-def schedule(queries=None):
-    """{subject+number: {sections, open, online, instructors, times}} for Spring 2027: every GenEd attribute and major subject."""
+def schedule(queries=None, term=TERM):
+    """{subject+number: {sections, open, online, instructors, times, taken, seats}} for a term (Spring 2027 by default): every GenEd attribute and major subject."""
     queries = queries or [{"txt_attribute": a} for a in ATTRS] + [{"txt_subject": s.upper()} for s in MAJOR_SUBJECTS]
     out, seen = {}, set()  # a section can match two queries (CIS 0835 is GS and CIS); count it once
     for q in queries:
         sess = requests.Session(); sess.headers.update(UA)  # fresh session per attribute (verified to work)
         sid = uuid.uuid4().hex[:12]
         sess.get(BANNER + "classSearch/getTerms?searchTerm=&offset=1&max=10", timeout=30)
-        sess.post(BANNER + "term/search?mode=search", data={"term": TERM, "studyPath": "", "studyPathText": "",
+        sess.post(BANNER + "term/search?mode=search", data={"term": term, "studyPath": "", "studyPathText": "",
                   "startDatepicker": "", "endDatepicker": "", "uniqueSessionId": sid}, timeout=30)
         offset, total = 0, 1
         while offset < total:
             time.sleep(1)
             r = sess.get(BANNER + "searchResults/searchResults", params={
-                "txt_term": TERM, **q, "startDatepicker": "", "endDatepicker": "",
+                "txt_term": term, **q, "startDatepicker": "", "endDatepicker": "",
                 "uniqueSessionId": sid, "pageOffset": offset, "pageMaxSize": 100,
                 "sortColumn": "subjectDescription", "sortDirection": "asc"},
                 headers={"X-Requested-With": "XMLHttpRequest", "Accept": "application/json"}, timeout=60).json()
@@ -102,8 +104,10 @@ def schedule(queries=None):
                     continue
                 seen.add(sec.get("courseReferenceNumber"))
                 key = f"{sec['subject']} {sec['courseNumber']}"
-                c = out.setdefault(key, {"sections": 0, "open": 0, "online": 0, "instructors": [], "times": []})
+                c = out.setdefault(key, {"sections": 0, "open": 0, "online": 0, "instructors": [], "times": [], "taken": 0, "seats": 0})
                 c["sections"] += 1
+                c["taken"] += sec.get("enrollment") or 0
+                c["seats"] += sec.get("maximumEnrollment") or 0
                 c["open"] += 1 if sec.get("openSection") else 0
                 if "online" in (sec.get("instructionalMethodDescription") or "").lower():
                     c["online"] += 1
@@ -143,7 +147,21 @@ def refresh_major_schedule():
     print(f"{n} major courses are on the Spring 2027 schedule")
 
 
-if __name__ == "__main__" and "--schedule" in sys.argv:
+def last_spring_fill():
+    """Writes lastFull (% of seats taken at the end of Spring 2026) onto every course in courses.json."""
+    past = schedule(term=LAST_SPRING)
+    data_file = ROOT / "public" / "data" / "courses.json"
+    data = json.loads(data_file.read_text())
+    for c in data["courses"]:
+        p = past.get(c["code"])
+        c["lastFull"] = round(100 * p["taken"] / p["seats"]) if p and p["seats"] else None
+    data_file.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")))
+    print(sum(c["lastFull"] is not None for c in data["courses"]), "courses have a Spring 2026 fill rate")
+
+
+if __name__ == "__main__" and "--last-spring" in sys.argv:
+    last_spring_fill()
+elif __name__ == "__main__" and "--schedule" in sys.argv:
     refresh_major_schedule()
 elif __name__ == "__main__":
     lists = area_lists()

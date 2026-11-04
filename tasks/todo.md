@@ -15,6 +15,10 @@
 - **P3** — Some GenEds exclude certain majors ("Field of Study Restrictions" in the description, e.g. ECE 0832 for CS and EE). The ranking ignores this; it's mostly hidden today by the CS and EE waivers.
 
 ## Resolved
+- 2026-11-03 — Live seats: each Spring 2027 course card has a "Live seats & times" toggle that calls `/api/sections`, which reads Temple's public Banner class search (CRN, times, room, instructor, seats, waitlist; open sections first; 60 s CDN cache). If Banner fails, the card shows the scraped times. Checked in both versions, live and with Banner forced to fail. Also: "Filled up last spring" label (98%+ of seats taken at the end of Spring 2026, 86 of 276 courses; `scrape.py --last-spring`), and a shareable Sheet of the fill rates for teammates (`exports/spring-2026-fill-rates.csv`).
+- 2026-11-03 — Skills a student sets by hand now win over Claude's picks, and the "We heard" box names the skills Claude set. This came from Ethan asking whether auto-picked skills were intended.
+  - A new goal keeps hand-set skills, even one clicked while the goal is being read; "Clear skills" lets the goal pick again.
+  - New mocked check 16/16 on both pages, locally and live; the earlier 16 still pass; one real live search shows the new line.
 - 2026-11-03 — Final code check: 9 of 10 findings fixed, checked locally and live, and pushed.
   - A second Enter while a goal is being read no longer starts another paid AI call.
   - A major change keeps the GenEd picks on screen and re-ranks only the electives.

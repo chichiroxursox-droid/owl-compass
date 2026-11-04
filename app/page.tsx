@@ -8,15 +8,44 @@ type Course = {
   code: string; title: string; credits: string; area: string | null; subject: string; summary: string; url: string;
   skills: { id: string; strength: number; evidence: string }[];
   spring: null | { sections: number; open: number; online: number; instructors: string[]; times: string[] };
+  lastFull: number | null; // % of seats taken at the end of Spring 2026
 };
 type Area = { id: string; name: string; short: string; slots: number; kind: string; fixed?: string };
 type Major = { id: string; name: string; waives: string[]; waiverNote: string; electiveNote: string; electiveSubjects: string[]; electiveList?: string[]; url: string };
 type Data = { skills: Skill[]; courses: Course[]; areas: Area[]; rules: { id: string; quote: string }[]; majors: Major[]; source: string; term: string; scraped: string };
 
 const RMP = (name: string) => `https://www.ratemyprofessors.com/search/professors?q=${encodeURIComponent(name + " Temple University")}`;
+// ponytail: 98% flags about a third of courses; 90% flagged half, so the label stopped meaning anything
+const FILLED = 98;
 const RULE_URL = "https://bulletin.temple.edu/undergraduate/general-education/";
 const EXAMPLES = ["I want to get into UX design and get better at presenting", "Pre-law: I need to argue and write well", "I want to understand people and data for marketing"];
 const load = (k: string, d: unknown) => { try { return JSON.parse(localStorage.getItem(k) || "") ?? d; } catch { return d; } };
+
+type Section = { crn: string; sec: string; method: string; who: string[]; when: string[]; seats: number; max: number; wait: number };
+
+// Live seats from /api/sections, fetched the first time the card is opened; the scraped times if Banner fails.
+function Seats({ c, scraped }: { c: Course; scraped: string }) {
+  const [live, setLive] = useState<Section[] | "loading" | "failed" | null>(null);
+  const open = () => {
+    if (live) return;
+    setLive("loading");
+    fetch(`/api/sections?course=${encodeURIComponent(c.code)}`).then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((j) => setLive(j.sections)).catch(() => setLive("failed"));
+  };
+  return (
+    <details className="seats" onToggle={(e) => (e.currentTarget.open ? open() : undefined)}>
+      <summary>Live seats &amp; times</summary>
+      {live === "loading" && <p className="note">Checking Temple’s class schedule…</p>}
+      {live === "failed" && <p className="note">Live seats are unavailable right now. Times as of {scraped}: {c.spring?.times.join(", ") || "none listed"}.</p>}
+      {Array.isArray(live) && (live.length ? <ul>{live.map((s) => (
+        <li key={s.crn}>
+          <span className="num">{s.sec}</span> · {s.when.join("; ") || s.method}{s.who.length ? ` · ${s.who.join(", ")}` : ""}
+          {" · "}<b className={s.seats > 0 ? "" : "no"}>{s.seats > 0 ? `${s.seats} of ${s.max} seats open` : `Full${s.wait ? `, ${s.wait} waitlisted` : ""}`}</b>
+          <span className="crn"> CRN {s.crn}</span>
+        </li>))}</ul> : <p className="note">No Spring 2027 sections right now.</p>)}
+    </details>
+  );
+}
 
 export default function Page() {
   const [data, setData] = useState<Data | null>(null);
@@ -36,8 +65,8 @@ export default function Page() {
   const [tearing, setTearing] = useState("");
   const seq = useRef(0); // only the latest search may update the page
   // What find() reads once its reply lands: the state as it is then, not as it was when the search began.
-  const live = useRef({ weights, springOnly, fit });
-  useEffect(() => { live.current = { weights, springOnly, fit }; });
+  const live = useRef({ weights, springOnly, fit, skillsFrom });
+  useEffect(() => { live.current = { weights, springOnly, fit, skillsFrom }; });
 
   useEffect(() => {
     Promise.all(["courses", "skills", "rules", "majors"].map((f) => fetch(`/data/${f}.json`).then((r) => r.json()))).then(([c, s, r, m]) => {
@@ -77,8 +106,10 @@ export default function Page() {
       if (n !== seq.current) return;
       if (!r?.ok || !j?.weights) throw new Error(j?.error || "Couldn't reach the AI. Check your connection, or pick skills by hand.");
       const now = live.current;
-      const f: Record<string, number> = keep ? rereadFit(data!.courses, now.fit, j.fit || {}) : j.fit || {}, w = keep ? now.weights : j.weights;
-      if (!keep) { setWeights(w); setSkillsFrom("goal"); }
+      // Skills set by hand win over the goal's picks; with none set, the goal's picks fill them.
+      const mine = keep || (now.skillsFrom === "hand" && Object.values(now.weights).some(Boolean));
+      const f: Record<string, number> = keep ? rereadFit(data!.courses, now.fit, j.fit || {}) : j.fit || {}, w = mine ? now.weights : j.weights;
+      if (!mine) { setWeights(w); setSkillsFrom("goal"); }
       setFit(f); setReadBack(j.readBack); setReadFor(text);
       // Explain only courses about the goal: the top one per area (not the required ones) and the top major electives.
       const m = data!.majors.find((x) => x.id === mid);
@@ -102,6 +133,8 @@ export default function Page() {
 
   if (!data) return <div className="main"><div className="skeleton" /><div className="skeleton" /></div>;
   const skillById = Object.fromEntries(data.skills.map((s) => [s.id, s]));
+  // The chosen skills, most important first, as "A, B, and C".
+  const picked = new Intl.ListFormat("en").format(data.skills.filter((s) => weights[s.id]).sort((a, b) => weights[b.id] - weights[a.id]).map((s) => s.label));
   const areaById = Object.fromEntries(data.areas.map((a) => [a.id, a]));
   const ruleQuote = (id: string) => data.rules.find((r) => r.id === id)?.quote;
 
@@ -127,8 +160,10 @@ export default function Page() {
           <div className="facts">
             <span className="num">{c.credits} credits</span>
             {c.spring ? <span>Spring 2027 · <span className="num">{c.spring.sections}</span> section{c.spring.sections > 1 ? "s" : ""}{c.spring.online ? `, ${c.spring.online} online` : ""}</span> : <span className="no">Not on the Spring 2027 schedule</span>}
+            {(c.lastFull ?? 0) >= FILLED && <span className="no" title={`${c.lastFull}% of seats were taken by the end of Spring 2026`}>Filled up last spring</span>}
             {c.spring?.instructors[0] && <a href={RMP(c.spring.instructors[0])} target="_blank" rel="noreferrer">Look up {c.spring.instructors[0]} on Rate My Professors</a>}
           </div>
+          {c.spring && <Seats c={c} scraped={data!.scraped} />}
           <p className="summary">{c.summary}</p>
           {reasons[c.code] && <p className="why"><span className="sr">Why for you, written by AI: </span>{reasons[c.code]}</p>}
           <div className="tags">{c.skills.map((s) => (
@@ -185,7 +220,7 @@ export default function Page() {
 
         <main className="main">
           {error && <p className="readback err" role="alert">{error}</p>}
-          {readBack && <div className="readback" aria-live="polite"><b>We heard</b><span>{readBack}</span><button className="link" onClick={clearGoal}>Clear goal</button></div>}
+          {readBack && <div className="readback" aria-live="polite"><b>We heard</b><span>{readBack}{hasWeights && <span className="note">{skillsFrom === "goal" ? `We set ${picked} from your goal as a starting point. Change them under “Your skills” if they don't fit.` : "Your skills stay as you set them, even for a new goal. Use “Clear skills” to let the goal pick."}</span>}</span><button className="link" onClick={clearGoal}>Clear goal</button></div>}
           {!active ? (
             <div className="empty">
               <h2>Pick GenEds on purpose</h2>

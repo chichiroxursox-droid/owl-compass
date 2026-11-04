@@ -1,5 +1,6 @@
 import { rankByArea, rankElectives, rereadFit, checkPlan, dots } from "/core/compass.mjs";
 
+const FILLED = 98; // % of seats taken at the end of Spring 2026; same cutoff as the React version
 const RMP = (name) => `https://www.ratemyprofessors.com/search/professors?q=${encodeURIComponent(name + " Temple University")}`;
 const RULE_URL = "https://bulletin.temple.edu/undergraduate/general-education/";
 const EXAMPLES = ["I want to get into UX design and get better at presenting", "Pre-law: I need to argue and write well", "I want to understand people and data for marketing"];
@@ -9,7 +10,7 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 
 // fit: code -> 2-3, how squarely a course is about the goal (from /api/interpret)
 // asked: the goal as submitted; a major change re-reads this, not the box. readFor: the goal the shown reading belongs to.
-const S = { data: null, goal: "", asked: "", readFor: "", skillsFrom: "hand", majorId: "undeclared", weights: {}, fit: {}, springOnly: true, plan: [], readBack: "", reasons: {}, busy: false, error: "", tearing: "" };
+const S = { data: null, goal: "", asked: "", readFor: "", skillsFrom: "hand", majorId: "undeclared", weights: {}, fit: {}, springOnly: true, plan: [], readBack: "", reasons: {}, seats: {}, busy: false, error: "", tearing: "" };
 const app = document.getElementById("app");
 let $rail, $main, $tray, $goal, $btn, $major;
 let seq = 0; // only the latest search may update the page
@@ -65,6 +66,15 @@ function init() {
   $rail.addEventListener("click", onRailClick);
   $rail.addEventListener("change", (e) => { if (e.target.matches("[data-spring]")) { S.springOnly = e.target.checked; render(); } });
   $main.addEventListener("click", onMainClick);
+  // toggle doesn't bubble, so listen in the capture phase. Open cards live in S.seats so a re-render keeps them open.
+  $main.addEventListener("toggle", (e) => {
+    const code = e.target.dataset?.seats;
+    if (!code || e.target.open === code in S.seats) return;
+    if (!e.target.open) { delete S.seats[code]; return; }
+    S.seats[code] = "loading"; render();
+    fetch(`/api/sections?course=${encodeURIComponent(code)}`).then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((j) => { S.seats[code] = j.sections; }).catch(() => { S.seats[code] = "failed"; }).finally(render);
+  }, true);
   // Removing a plan item removes the focused button, so focus moves to the plan's heading.
   $tray.addEventListener("click", (e) => { const b = e.target.closest("[data-rm]"); if (b) { S.plan = S.plan.filter((p) => p.code !== b.dataset.rm); render(); $tray.querySelector("#plan-h")?.focus(); } });
   render();
@@ -102,8 +112,10 @@ async function find(text = S.goal, mid = S.majorId, reread = false) {
     const j = await r?.json().catch(() => null);
     if (n !== seq) return;
     if (!r?.ok || !j?.weights) throw new Error(j?.error || "Couldn't reach the AI. Check your connection, or pick skills by hand.");
-    const f = keep ? rereadFit(S.data.courses, S.fit, j.fit || {}) : j.fit || {}, w = keep ? S.weights : j.weights;
-    if (!keep) { S.weights = w; S.skillsFrom = "goal"; }
+    // Skills set by hand win over the goal's picks; with none set, the goal's picks fill them.
+    const mine = keep || (S.skillsFrom === "hand" && Object.values(S.weights).some(Boolean));
+    const f = keep ? rereadFit(S.data.courses, S.fit, j.fit || {}) : j.fit || {}, w = mine ? S.weights : j.weights;
+    if (!mine) { S.weights = w; S.skillsFrom = "goal"; }
     S.fit = f; S.readBack = j.readBack; S.readFor = text;
     // Explain only courses about the goal: the top one per area (not the required ones) and the top major electives.
     const m = S.data.majors.find((x) => x.id === mid);
@@ -125,6 +137,16 @@ function take(c) {
 
 const dotsHtml = (n) => [1, 2, 3].map((i) => `<i${i <= n ? ' class="f"' : ""}></i>`).join("");
 
+// Same as the React Seats card: live seats once opened, the scraped times if Banner fails.
+function seatsHtml(c) {
+  const live = S.seats[c.code];
+  const body = live === "loading" ? `<p class="note">Checking Temple’s class schedule…</p>`
+    : live === "failed" ? `<p class="note">Live seats are unavailable right now. Times as of ${esc(S.data.scraped)}: ${esc(c.spring.times.join(", ") || "none listed")}.</p>`
+    : Array.isArray(live) ? (live.length ? `<ul>${live.map((s) => `<li><span class="num">${esc(s.sec)}</span> · ${esc(s.when.join("; ") || s.method)}${s.who.length ? ` · ${esc(s.who.join(", "))}` : ""} · <b class="${s.seats > 0 ? "" : "no"}">${s.seats > 0 ? `${esc(s.seats)} of ${esc(s.max)} seats open` : `Full${s.wait ? `, ${esc(s.wait)} waitlisted` : ""}`}</b><span class="crn"> CRN ${esc(s.crn)}</span></li>`).join("")}</ul>` : `<p class="note">No Spring 2027 sections right now.</p>`)
+    : "";
+  return `<details class="seats" data-seats="${esc(c.code)}"${live ? " open" : ""}><summary>Live seats &amp; times</summary>${body}</details>`;
+}
+
 function row(c) {
   const d = dots(c, S.weights);
   const f = S.fit[c.code] || 0;
@@ -137,8 +159,10 @@ function row(c) {
     <div class="facts">
       <span class="num">${esc(c.credits)} credits</span>
       ${sp ? `<span>Spring 2027 · <span class="num">${esc(sp.sections)}</span> section${sp.sections > 1 ? "s" : ""}${sp.online ? `, ${esc(sp.online)} online` : ""}</span>` : `<span class="no">Not on the Spring 2027 schedule</span>`}
+      ${(c.lastFull ?? 0) >= FILLED ? `<span class="no" title="${esc(c.lastFull)}% of seats were taken by the end of Spring 2026">Filled up last spring</span>` : ""}
       ${sp?.instructors[0] ? `<a href="${esc(RMP(sp.instructors[0]))}" target="_blank" rel="noreferrer">Look up ${esc(sp.instructors[0])} on Rate My Professors</a>` : ""}
     </div>
+    ${sp ? seatsHtml(c) : ""}
     <p class="summary">${esc(c.summary)}</p>
     ${S.reasons[c.code] ? `<p class="why"><span class="sr">Why for you, written by AI: </span>${esc(S.reasons[c.code])}</p>` : ""}
     <div class="tags">${c.skills.map((s) => `<span class="tag${S.weights[s.id] ? " on" : ""}" title="${esc(`From the catalog: "${s.evidence}"`)}">${esc(skillById[s.id]?.label)}<span class="dots" aria-label="strength ${s.strength} of 3">${dotsHtml(s.strength)}</span></span>`).join("")}</div>
@@ -174,7 +198,9 @@ function render() {
 
   let main = "";
   if (S.error) main += `<p class="readback err" role="alert">${esc(S.error)}</p>`;
-  if (S.readBack) main += `<div class="readback" aria-live="polite"><b>We heard</b><span>${esc(S.readBack)}</span><button class="link" data-clear-goal data-f="clear-goal">Clear goal</button></div>`;
+  // The chosen skills, most important first, as "A, B, and C".
+  const picked = new Intl.ListFormat("en").format(data.skills.filter((s) => S.weights[s.id]).sort((a, b) => S.weights[b.id] - S.weights[a.id]).map((s) => s.label));
+  if (S.readBack) main += `<div class="readback" aria-live="polite"><b>We heard</b><span>${esc(S.readBack)}${hasWeights ? `<span class="note">${S.skillsFrom === "goal" ? `We set ${esc(picked)} from your goal as a starting point. Change them under “Your skills” if they don't fit.` : "Your skills stay as you set them, even for a new goal. Use “Clear skills” to let the goal pick."}</span>` : ""}</span><button class="link" data-clear-goal data-f="clear-goal">Clear goal</button></div>`;
   if (!active) {
     main += `<div class="empty"><h2>Pick GenEds on purpose</h2>
       <p>Temple organizes GenEd by requirement code. Owl Compass sorts the same ${data.courses.length} courses by what you'll actually learn. Tell it a goal above, or set skills on the left.</p>

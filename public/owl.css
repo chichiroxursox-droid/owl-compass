@@ -79,6 +79,12 @@ h3.h { font: 600 15px/1.2 var(--ui); margin: 18px 0 8px; color: var(--ink-2); }
 .title a:hover { text-decoration: underline; }
 .facts { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--ink-2); margin-top: 4px; }
 .facts .no { color: var(--warn); }
+.seats { font-size: 13px; color: var(--ink-2); margin-top: 6px; }
+.seats summary { cursor: pointer; width: fit-content; }
+.seats ul { margin: 4px 0 0; padding-left: 18px; max-height: 260px; overflow-y: auto; }
+.seats li { margin: 2px 0; }
+.seats .no { color: var(--warn); }
+.seats .crn { opacity: .7; }
 .summary { margin: 6px 0 0; max-width: 72ch; }
 .why { margin: 6px 0 0; max-width: 72ch; padding-left: 10px; border-left: 1px solid var(--cherry); color: var(--cherry-ink); font-size: 14px; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
@@ -145,3 +151,4 @@ h3.h { font: 600 15px/1.2 var(--ui); margin: 18px 0 8px; color: var(--ink-2); }
 /* The goal is yellow: the band holds it, "We heard" restates it, and this marks courses about it */
 .fit { font: 700 12px/1 var(--ui); padding: 4px 7px; border-radius: 4px; background: #fffbd1; border: 1px solid #e8d900; white-space: nowrap; }
 .readback .link { margin-left: auto; border: 0; background: none; padding: 0; font-size: 13px; color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; white-space: nowrap; }
+.readback .note { display: block; margin-top: 4px; }
